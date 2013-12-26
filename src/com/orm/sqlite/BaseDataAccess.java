@@ -13,6 +13,8 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.orm.sqlite.util.Tuple;
+
 /**
  * 
  * @author Noam
@@ -27,15 +29,18 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 		this.dbHelper = dbHelper;
 	}
 
+	@Override
 	public boolean isOpen() {
 		return database.isOpen();
 	}
 
+	@Override
 	public void open() throws SQLException {
 		if (database == null || !database.isOpen())
 			database = dbHelper.getWritableDatabase();
 	}
 
+	@Override
 	public void close() {
 		if (database != null && database.isOpen())
 			database.close();
@@ -43,10 +48,12 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 			dbHelper.close();
 	}
 
+	@Override
 	public List<T> findAll() {
 		return findAll(null);
 	}
 
+	@Override
 	public List<T> findAll(String orderBy) {
 		List<T> tis = new LinkedList<T>();
 
@@ -60,12 +67,14 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 		return tis;
 	}
 
+	@Override
 	public synchronized Cursor cursorFindAll(String orderBy) {
 		Cursor cursor = database.query(getTable(), getAllColumns(), null, null, null, null, orderBy);
 		cursor.moveToFirst();
 		return cursor;
 	}
 
+	@Override
 	public T findById(Long id) {
 		if (id == null) {
 			return null;
@@ -78,11 +87,8 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 		return null;
 	}
 
-	public Cursor cursorFindById(String id) {
-		return cursorFindByProperty(getColumnId(), id, null);
-	}
-
-	public List<T> findByProperties(Map<String, String> properties, String orderBy) {
+	@Override
+	public List<T> findByProperties(Map<String, Object> properties, String orderBy) {
 		if (properties == null || properties.size() == 0) {
 			return null;
 		}
@@ -101,23 +107,26 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 		}
 	}
 
-	public List<T> findByProperty(String key, String value) {
+	@Override
+	public List<T> findByProperty(String key, Object value) {
 		return findByProperty(key, value, null);
 	}
 
-	public List<T> findByProperty(final String key, final String value, final String orderBy) {
-		HashMap<String, String> properties = new HashMap<String, String>();
+	@Override
+	public List<T> findByProperty(final String key, final Object value, final String orderBy) {
+		HashMap<String, Object> properties = new HashMap<String, Object>();
 		properties.put(key, value);
 		return findByProperties(properties, orderBy);
 	}
 
-	public Cursor cursorFindByProperty(String key, String value, String orderBy) {
-		HashMap<String, String> properties = new HashMap<String, String>();
+	@Override
+	public Cursor cursorFindByProperty(String key, Object value, String orderBy) {
+		HashMap<String, Object> properties = new HashMap<String, Object>();
 		properties.put(key, value);
 		return cursorFindByProperties(properties, orderBy);
 	}
-	
-	public synchronized Cursor cursorFindByProperties(Map<String, String> properties, String orderBy) {
+
+	private Tuple<String, String[]> getWhereClause(Map<String, Object> properties) {
 		String whereString = "";
 		List<String> whereProperties = new ArrayList<String>();
 		boolean first = true;
@@ -128,13 +137,44 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 				first = false;
 			}
 			whereString += key + " = ?";
-			whereProperties.add(properties.get(key));
+			Object representation = convertToDatabaseRepresentation(properties.get(key));
+			whereProperties.add(representation == null ? null : representation.toString());
 		}
+		return new Tuple<String, String[]>(whereString, whereProperties.toArray(new String[0]));
+	}
 
-		Cursor cursor = database.query(getTable(), getAllColumns(), whereString, whereProperties.toArray(new String[0]), null,
-				null, orderBy);
+	@Override
+	public synchronized Cursor cursorFindByProperties(Map<String, Object> properties, String orderBy) {
+		Tuple<String, String[]> whereClause = getWhereClause(properties);
+		Cursor cursor = database.query(getTable(), getAllColumns(), whereClause.getFirst(), whereClause.getSecond(), null, null,
+				orderBy);
 		cursor.moveToFirst();
 		return cursor;
+	}
+
+	@Override
+	public synchronized void updateByProperties(Map<String, Object> query, Map<String, Object> update) {
+		Tuple<String, String[]> whereClause = getWhereClause(query);
+
+		database.update(getTable(), convertToContentValues(update), whereClause.getFirst(), whereClause.getSecond());
+	}
+
+	@Override
+	public synchronized void deleteByProperty(String key, Object value) {
+		Map<String, Object> properties = new HashMap<String, Object>();
+		properties.put(key, value);
+		deleteByProperties(properties);
+	}
+	
+	public synchronized void deleteByProperties(Map<String, Object> properties) {
+		Tuple<String, String[]> whereClause = getWhereClause(properties);
+		database.delete(getTable(), whereClause.getFirst(), whereClause.getSecond());
+	}
+
+
+	@Override
+	public void deleteById(String id) {
+		deleteByProperty(getColumnId(), id);
 	}
 
 	protected synchronized long save(Long id, String[] keys, Object[] values) {
@@ -146,27 +186,7 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 		for (int i = 0; i < keys.length; i++) {
 			Object value = values[i];
 			String key = keys[i];
-			if (value == null) {
-				cv.put(key, (String) null);
-			} else if (value instanceof String) {
-				cv.put(key, (String) value);
-			} else if (value instanceof Long) {
-				cv.put(key, (Long) value);
-			} else if (value instanceof Double) {
-				cv.put(key, (Double) value);
-			} else if (value instanceof Integer) {
-				cv.put(key, (Integer) value);
-			} else if (value instanceof Boolean) {
-				cv.put(key, ((Boolean) value ? 1 : 0));
-			} else if (value instanceof Date) {
-				cv.put(key, ((Date) value).getTime());
-			} else if (value instanceof Float) {
-				cv.put(key, (Float) value);
-			} else if (value instanceof byte[]) {
-				cv.put(key, (byte[]) value);
-			} else {
-				throw new IllegalArgumentException("Value of " + key + "=" + value + " type is not supported.");
-			}
+			addToContentValues(cv, key, value);
 		}
 
 		if (id == null) {
@@ -182,12 +202,56 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 		}
 	}
 
-	public synchronized void deleteByProperty(String key, String value) {
-		database.delete(getTable(), key + " = ?", new String[] { value });
+	private Object convertToDatabaseRepresentation(Object value) {
+		if (value == null) {
+			return null;
+		} else if (value instanceof String) {
+			return (String) value;
+		} else if (value instanceof Long) {
+			return (Long) value;
+		} else if (value instanceof Double) {
+			return (Double) value;
+		} else if (value instanceof Integer) {
+			return (Integer) value;
+		} else if (value instanceof Boolean) {
+			return ((Boolean) value ? 1 : 0);
+		} else if (value instanceof Date) {
+			return ((Date) value).getTime();
+		} else if (value instanceof Float) {
+			return (Float) value;
+		} else if (value instanceof byte[]) {
+			return (byte[]) value;
+		} else {
+			throw new IllegalArgumentException("Value " + value + " type is not supported.");
+		}
 	}
 
-	public void deleteById(String id) {
-		deleteByProperty(getColumnId(), id);
+	private void addToContentValues(ContentValues cv, String key, Object value) {
+		if (value == null) {
+			cv.put(key, (String) null);
+		} else if (value instanceof String) {
+			cv.put(key, (String) value);
+		} else if (value instanceof Long) {
+			cv.put(key, (Long) value);
+		} else if (value instanceof Double) {
+			cv.put(key, (Double) value);
+		} else if (value instanceof Integer) {
+			cv.put(key, (Integer) value);
+		} else if (value instanceof Boolean) {
+			cv.put(key, ((Boolean) value ? 1 : 0));
+		} else if (value instanceof Date) {
+			cv.put(key, ((Date) value).getTime());
+		} else if (value instanceof Float) {
+			cv.put(key, (Float) value);
+		} else if (value instanceof byte[]) {
+			cv.put(key, (byte[]) value);
+		} else {
+			throw new IllegalArgumentException("Value of " + key + "=" + value + " type is not supported.");
+		}
+	}
+
+	private ContentValues convertToContentValues(Map<String, Object> update) {
+		return null;
 	}
 
 	protected String getString(Cursor cursor, String columnName) {

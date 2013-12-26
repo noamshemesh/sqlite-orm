@@ -1,8 +1,11 @@
 package com.orm.sqlite;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -23,7 +26,7 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 	public BaseDataAccess(SQLiteOpenHelper dbHelper) {
 		this.dbHelper = dbHelper;
 	}
-	
+
 	public boolean isOpen() {
 		return database.isOpen();
 	}
@@ -79,31 +82,57 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 		return cursorFindByProperty(getColumnId(), id, null);
 	}
 
-	public List<T> findByProperty(String key, String value) {
-		return findByProperty(key, value, null);
-	}
-
-	public List<T> findByProperty(String key, String value, String orderBy) {
-		if (key == null || value == null) {
+	public List<T> findByProperties(Map<String, String> properties, String orderBy) {
+		if (properties == null || properties.size() == 0) {
 			return null;
 		}
 		Cursor cursor = null;
 		try {
 			List<T> toReturn = new LinkedList<T>();
-			cursor = cursorFindByProperty(key, value, orderBy);
+			cursor = cursorFindByProperties(properties, orderBy);
 			while (cursor.getCount() > 0 && !cursor.isAfterLast()) {
 				toReturn.add(cursorToT(cursor));
 				cursor.moveToNext();
 			}
 			return toReturn;
 		} finally {
-			if (cursor != null) 
+			if (cursor != null)
 				cursor.close();
 		}
 	}
 
-	public synchronized Cursor cursorFindByProperty(String key, String value, String orderBy) {
-		Cursor cursor = database.query(getTable(), getAllColumns(), key + " = ?", new String[] { value }, null, null, orderBy);
+	public List<T> findByProperty(String key, String value) {
+		return findByProperty(key, value, null);
+	}
+
+	public List<T> findByProperty(final String key, final String value, final String orderBy) {
+		HashMap<String, String> properties = new HashMap<String, String>();
+		properties.put(key, value);
+		return findByProperties(properties, orderBy);
+	}
+
+	public Cursor cursorFindByProperty(String key, String value, String orderBy) {
+		HashMap<String, String> properties = new HashMap<String, String>();
+		properties.put(key, value);
+		return cursorFindByProperties(properties, orderBy);
+	}
+	
+	public synchronized Cursor cursorFindByProperties(Map<String, String> properties, String orderBy) {
+		String whereString = "";
+		List<String> whereProperties = new ArrayList<String>();
+		boolean first = true;
+		for (String key : properties.keySet()) {
+			if (!first) {
+				whereString += " AND ";
+			} else {
+				first = false;
+			}
+			whereString += key + " = ?";
+			whereProperties.add(properties.get(key));
+		}
+
+		Cursor cursor = database.query(getTable(), getAllColumns(), whereString, whereProperties.toArray(new String[0]), null,
+				null, orderBy);
 		cursor.moveToFirst();
 		return cursor;
 	}
@@ -160,11 +189,11 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 	public void deleteById(String id) {
 		deleteByProperty(getColumnId(), id);
 	}
-	
+
 	protected String getString(Cursor cursor, String columnName) {
 		return cursor.getString(cursor.getColumnIndex(columnName));
 	}
-	
+
 	protected Double getDouble(Cursor cursor, String columnName) {
 		return cursor.getDouble(cursor.getColumnIndex(columnName));
 	}

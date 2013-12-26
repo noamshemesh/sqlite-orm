@@ -13,11 +13,10 @@ And yet, we want a library that will simplify our access to SQLite, instead of w
 SQlite-ORM supports all the basic data types of Java, and will support more by demand.
 
 Immediate TODO:
-  1. findByProperties, update
-  2. Automatic bean construct
-  3. Support for projection (?)
-  4. Documentation (in code and tutorial)
-  5. Tests
+  1. Automatic bean construct
+  2. Support for projection (?)
+  3. Tests
+  4. Documentation (how to use)
 
 Future TODO:
   1. Bean factory/generator

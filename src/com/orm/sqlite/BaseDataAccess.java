@@ -86,7 +86,12 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 		}
 		return null;
 	}
-
+	
+	@Override
+	public List<T> findByProperties(Map<String, Object> properties) {
+		return findByProperties(properties, null);
+	}
+	
 	@Override
 	public List<T> findByProperties(Map<String, Object> properties, String orderBy) {
 		if (properties == null || properties.size() == 0) {
@@ -137,7 +142,7 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 				first = false;
 			}
 			whereString += key + " = ?";
-			Object representation = convertToDatabaseRepresentation(properties.get(key));
+			Object representation = convertToDatabaseRepresentationForWhereClause(properties.get(key));
 			whereProperties.add(representation == null ? null : representation.toString());
 		}
 		return new Tuple<String, String[]>(whereString, whereProperties.toArray(new String[0]));
@@ -158,11 +163,19 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 
 		database.update(getTable(), convertToContentValues(update), whereClause.getFirst(), whereClause.getSecond());
 	}
+	
+	@Override
+	public void clear() {
+		deleteByProperty(null, null);
+	}
 
 	@Override
-	public synchronized void deleteByProperty(String key, Object value) {
+	public void deleteByProperty(String key, Object value) {
 		Map<String, Object> properties = new HashMap<String, Object>();
-		properties.put(key, value);
+
+		if (key != null || value != null) {
+			properties.put(key, value);
+		}
 		deleteByProperties(properties);
 	}
 	
@@ -202,7 +215,7 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 		}
 	}
 
-	private Object convertToDatabaseRepresentation(Object value) {
+	private Object convertToDatabaseRepresentationForWhereClause(Object value) {
 		if (value == null) {
 			return null;
 		} else if (value instanceof String) {
@@ -218,9 +231,9 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 		} else if (value instanceof Date) {
 			return ((Date) value).getTime();
 		} else if (value instanceof Float) {
-			return (Float) value;
+			return ((Float) value).doubleValue();
 		} else if (value instanceof byte[]) {
-			return (byte[]) value;
+			throw new IllegalArgumentException("byte[] is not supported.");
 		} else {
 			throw new IllegalArgumentException("Value " + value + " type is not supported.");
 		}
@@ -242,7 +255,7 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 		} else if (value instanceof Date) {
 			cv.put(key, ((Date) value).getTime());
 		} else if (value instanceof Float) {
-			cv.put(key, (Float) value);
+			cv.put(key, ((Float) value).doubleValue());
 		} else if (value instanceof byte[]) {
 			cv.put(key, (byte[]) value);
 		} else {
@@ -260,6 +273,10 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 
 	protected Double getDouble(Cursor cursor, String columnName) {
 		return cursor.getDouble(cursor.getColumnIndex(columnName));
+	}
+	
+	protected Float getFloat(Cursor cursor, String columnName) {
+		return getDouble(cursor, columnName).floatValue();
 	}
 
 	protected Boolean getBoolean(Cursor cursor, String columnName) {
@@ -304,7 +321,5 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 	protected abstract String getTable();
 
 	protected abstract String[] getAllColumns();
-
-	protected abstract String getDatabaseCreate();
 
 }

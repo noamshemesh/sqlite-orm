@@ -93,6 +93,11 @@ public interface IBaseDataAccess<T> {
 	void updateByProperties(Map<String, Object> query, Map<String, Object> update);
 
 	/**
+	 * Delete all the entities in the table
+	 */
+	void clear();
+	
+	/**
 	 * Delete one entity by its database Id
 	 */
 	void deleteById(String id);
@@ -126,4 +131,5 @@ public interface IBaseDataAccess<T> {
 	 * Close this database
 	 */
 	void close();
+
 }

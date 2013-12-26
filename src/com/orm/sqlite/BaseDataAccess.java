@@ -264,7 +264,11 @@ public abstract class BaseDataAccess<T> implements IBaseDataAccess<T> {
 	}
 
 	private ContentValues convertToContentValues(Map<String, Object> update) {
-		return null;
+		ContentValues contentValues = new ContentValues();
+		for (String key : update.keySet()) {
+			addToContentValues(contentValues, key, update.get(key));
+		}
+		return contentValues;
 	}
 
 	protected String getString(Cursor cursor, String columnName) {

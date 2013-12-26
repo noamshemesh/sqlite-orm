@@ -1,6 +1,8 @@
 package com.orm.sqlite.test;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import android.content.ContentProvider;
@@ -131,7 +133,7 @@ public class BaseDataAccessTest extends ProviderTestCase2<DummyProvider> {
 		assertEquals(example, dbExample);
 	}
 
-	public void testfindByProperty() {
+	public void testFindByProperty() {
 		Example example = getExample();
 		Long id = tested.save(example);
 		example.setId(id);
@@ -151,7 +153,7 @@ public class BaseDataAccessTest extends ProviderTestCase2<DummyProvider> {
 		assertEquals(example, dbExample);
 	}
 	
-	public void testfindByPropertyByteArray() {
+	public void testFindByPropertyByteArray() {
 		Example example = getExample();
 		Long id = tested.save(example);
 		example.setId(id);
@@ -161,6 +163,49 @@ public class BaseDataAccessTest extends ProviderTestCase2<DummyProvider> {
 			return;
 		}
 		fail();
+	}
+
+	public void testFindByProperties() {
+		Example example = getExample();
+		Long id = tested.save(example);
+		example.setId(id);
+		Map<String, Object> properties = new HashMap<String, Object>();
+		properties.put(ExampleDataAccess.COLUMN_DATE, example.getDate());
+		properties.put(ExampleDataAccess.COLUMN_LNG, example.getLng());
+		properties.put(ExampleDataAccess.COLUMN_STR, example.getStr());
+		properties.put(ExampleDataAccess.COLUMN_INTEGER, example.getInteger());
+		properties.put(ExampleDataAccess.COLUMN_BOOL, example.getBool());
+		properties.put(ExampleDataAccess.COLUMN_FLT, example.getFlt());
+		properties.put(ExampleDataAccess.COLUMN_DBL, example.getDbl());
+		
+		Example dbExample = tested.findByProperties(properties).get(0);
+		assertEquals(example, dbExample);
+	}
+	
+	public void testUpdate() {
+		Example example = getExample();
+		Long id = tested.save(example);
+		example.setId(id);
+		Map<String, Object> properties = new HashMap<String, Object>();
+		properties.put(ExampleDataAccess.COLUMN_LNG, example.getLng());
+		Map<String, Object> update = new HashMap<String, Object>();
+		Long randomLong = randomLong();
+		update.put(ExampleDataAccess.COLUMN_LNG, randomLong);
+		example.setLng(randomLong);
+		tested.updateByProperties(properties, update);
+		Example dbExample = tested.findById(id);
+		assertEquals(example, dbExample);
+	}
+	
+	public void testDeleteByProperties() {
+		Example example = getExample();
+		Long id = tested.save(example);
+		example.setId(id);
+		Map<String, Object> properties = new HashMap<String, Object>();
+		properties.put(ExampleDataAccess.COLUMN_LNG, example.getLng());
+		tested.deleteByProperties(properties);
+		Example dbExample = tested.findById(id);
+		assertEquals(null, dbExample);
 	}
 
 	protected void tearDown() throws Exception {

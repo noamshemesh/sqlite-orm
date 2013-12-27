@@ -22,5 +22,4 @@ Immediate TODO:
 Future TODO:
 1. Bean factory/generator
 2. OpenHelper wrapper
-3. Mavenize
-4. Sessions (?)
+3. Sessions (?)

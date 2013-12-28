@@ -1,0 +1,4 @@
+com.orm.sqlite
+com.orm.sqlite.example
+com.orm.sqlite.generator
+com.orm.sqlite.util

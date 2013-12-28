@@ -3,9 +3,17 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>sqlite-orm</groupId>
 	<artifactId>sqlite-orm</artifactId>
-	<version>0.3.0-SNAPSHOT</version>
+	<version>0.4</version>
 	<name>Sqlite ORM (android)</name>
 	<description>Basic super lightweight "ORM" for android's sqlite.</description>
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<url>https://github.com/noamshemesh/sqlite-orm</url>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<plugins>

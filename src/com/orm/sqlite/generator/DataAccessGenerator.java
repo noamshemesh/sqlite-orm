@@ -16,8 +16,6 @@ import org.apache.velocity.exception.ResourceNotFoundException;
 
 import com.google.common.base.CaseFormat;
 
-import dalvik.system.PathClassLoader;
-
 public class DataAccessGenerator {
 	private static final String TEMPLATE_PATH = "res/template/dataaccess.vm";
 
@@ -66,7 +64,7 @@ public class DataAccessGenerator {
 			Velocity.init();
 
 			VelocityContext context = new VelocityContext();
-			
+
 			Class<?> beanClazz = Class.forName(args[0]);
 			Field[] fields = beanClazz.getDeclaredFields();
 			context.put("allColumnsDb", getNames(fields, true));
@@ -84,7 +82,12 @@ public class DataAccessGenerator {
 			template.merge(context, sw);
 
 			System.out.println(sw.toString());
+			File genFolder = new File("./gen");
+			genFolder.mkdir();
 			File dataAccessFile = new File("gen" + File.separator + beanClazz.getSimpleName() + "DataAccess.java");
+			if (dataAccessFile.exists()) {
+				dataAccessFile.delete();
+			}
 			FileWriter fw = new FileWriter(dataAccessFile);
 			fw.write(sw.toString());
 			fw.close();
@@ -100,10 +103,6 @@ public class DataAccessGenerator {
 			e.printStackTrace();
 		}
 
-	}
-
-	private static String getParent(String path) {
-		return path.substring(0, path.lastIndexOf(File.separator));
 	}
 
 }

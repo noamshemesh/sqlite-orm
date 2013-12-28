@@ -50,20 +50,24 @@ public class BaseDataAccessTest extends ProviderTestCase2<DummyProvider> {
 			return 0;
 		}
 	}
-	
+
 	public BaseDataAccessTest() {
 		super(DummyProvider.class, "com");
 	}
-	
+
 	private ExampleDataAccess tested;
 
 	protected void setUp() throws Exception {
 		super.setUp();
 		SQLiteOpenHelper openHelper = new SQLiteOpenHelper(mContext, "sqlite-orm-test", null, 1) {
-
+			@Override
+			public void onOpen(SQLiteDatabase db) {
+				db.execSQL("DROP TABLE IF EXISTS " + ExampleDataAccess.TABLE_NAME);
+				db.execSQL(ExampleDataAccess.DATABASE_CREATE);
+			}
+			
 			@Override
 			public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-				db.execSQL(ExampleDataAccess.DATABASE_CREATE);
 			}
 
 			@Override
@@ -75,7 +79,7 @@ public class BaseDataAccessTest extends ProviderTestCase2<DummyProvider> {
 		tested.open();
 		tested.clear();
 	}
-	
+
 	public Long randomLong() {
 		return new Random().nextLong();
 	}
@@ -98,11 +102,11 @@ public class BaseDataAccessTest extends ProviderTestCase2<DummyProvider> {
 		new Random().nextBytes(arr);
 		return arr;
 	}
-	
+
 	public Float randomFloat() {
 		return new Random().nextFloat() * 10000;
 	}
-	
+
 	public Integer randomInteger() {
 		return new Random().nextInt();
 	}
@@ -117,7 +121,7 @@ public class BaseDataAccessTest extends ProviderTestCase2<DummyProvider> {
 		Long id = tested.save(example);
 		example.setId(id);
 		Example dbExample = tested.findById(id);
-		
+
 		assertEquals(example, dbExample);
 	}
 
@@ -152,7 +156,7 @@ public class BaseDataAccessTest extends ProviderTestCase2<DummyProvider> {
 		dbExample = tested.findByProperty(ExampleDataAccess.COLUMN_DBL, example.getDbl()).get(0);
 		assertEquals(example, dbExample);
 	}
-	
+
 	public void testFindByPropertyByteArray() {
 		Example example = getExample();
 		Long id = tested.save(example);
@@ -177,11 +181,11 @@ public class BaseDataAccessTest extends ProviderTestCase2<DummyProvider> {
 		properties.put(ExampleDataAccess.COLUMN_BOOL, example.getBool());
 		properties.put(ExampleDataAccess.COLUMN_FLT, example.getFlt());
 		properties.put(ExampleDataAccess.COLUMN_DBL, example.getDbl());
-		
+
 		Example dbExample = tested.findByProperties(properties).get(0);
 		assertEquals(example, dbExample);
 	}
-	
+
 	public void testUpdate() {
 		Example example = getExample();
 		Long id = tested.save(example);
@@ -196,7 +200,7 @@ public class BaseDataAccessTest extends ProviderTestCase2<DummyProvider> {
 		Example dbExample = tested.findById(id);
 		assertEquals(example, dbExample);
 	}
-	
+
 	public void testDeleteByProperties() {
 		Example example = getExample();
 		Long id = tested.save(example);

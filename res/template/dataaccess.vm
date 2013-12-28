@@ -1,0 +1,70 @@
+package com.orm.sqlite.example;
+
+import com.orm.sqlite.BaseDataAccess;
+
+import android.database.Cursor;
+import android.database.sqlite.SQLiteOpenHelper;
+
+public class ${beanName}DataAccess extends BaseDataAccess<${beanName}> {
+
+	public ExampleDataAccess(SQLiteOpenHelper dbHelper) {
+		super(dbHelper);
+	}
+	
+	public static final String COLUMN_ID = "id";
+#foreach($column in ${allColumnsDb}) 
+	public static final String COLUMN_${column.toUpperCase()} = "${column}";		
+#end
+
+	public static final String TABLE_NAME = "${beanName}";
+
+	public static final String DATABASE_CREATE = "create table " + TABLE_NAME + 
+		"(" + COLUMN_ID + " integer primary key autoincrement," +
+#foreach($column in ${allColumnsDb}) 	
+#set( $index = $foreach.count - 1 )
+			COLUMN_${column.toUpperCase()} + " ${allTypesDb.get($index)}#if( $foreach.hasNext ),#end " +
+#end 
+			");";
+	@Override
+	public long save(${beanName} something) {
+		return save(
+				something.getId(),
+				new String[] { 
+#foreach($column in ${allColumnsDb}) 
+					COLUMN_${column.toUpperCase()}, 
+#end },
+				new Object[] { 
+#foreach($column in ${allColumnsCamel}) 
+					something.get${column}(), 
+#end });
+	}
+
+	@Override
+	protected String getColumnId() {
+		return COLUMN_ID;
+	}
+
+	@Override
+	protected Example cursorToT(Cursor cursor) {
+		return new Example(getLong(cursor, COLUMN_ID), 
+#foreach($column in ${allColumnsDb})
+#set( $index = $foreach.count - 1 )
+				get${allTypesExplicit.get($index)}(cursor, COLUMN_${column.toUpperCase()}) #if( $foreach.hasNext ), #end
+
+#end
+		);
+	}
+
+	@Override
+	protected String getTable() {
+		return TABLE_NAME;
+	}
+
+	@Override
+	protected String[] getAllColumns() {
+		return new String[] { COLUMN_ID, 
+#foreach($column in ${allColumnsDb}) 
+				COLUMN_${column.toUpperCase()}, 
+#end 		}; 
+	}
+}

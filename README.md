@@ -27,7 +27,7 @@ You can also use your favorite IDE in order to run the generator.
 
 The output will be in folder named "gen" under your project, copy it to the package of all the DAO's
 
-All the DAO's have the same basic interface that documented [here][0]
+All the DAO's have the same basic interface as BaseDataAccess that documented [here][0]
 
 TODO:
   1. Bean factory/generator
@@ -36,5 +36,5 @@ TODO:
   4. Release in Maven central repository
 
 
-[0] - http://noamshemesh.github.io/sqlite-orm
+[0]: http://noamshemesh.github.io/sqlite-orm
 

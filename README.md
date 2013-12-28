@@ -13,11 +13,9 @@ And yet, we want a library that will simplify our access to SQLite, instead of w
 SQlite-ORM supports all the basic data types of Java, and will support more by demand.
 
 Immediate TODO:
-  1. Automatic bean construct
-  2. Documentation (how to use)
+  1. Documentation (how to use)
 
 Future TODO:
   1. Bean factory/generator
   2. OpenHelper wrapper
-  3. Mavenize
-  4. Sessions (?)
+  3. Sessions (?)

@@ -20,9 +20,9 @@ Create java beans with simple types, follow this rules:
 1. ID column must be first
 2. Make sure the constructor parameters are in the same order as the fields, including the ID column
 Now you need to create a DataAccess class, the generator can help with that, run it from your project folder by using this command:
-`java -cp "[your compiled classes]:[downloaded jar]:[sqlite-orm lib folder]/*"` com.orm.sqlite.generator.DataAccessGenerator [your class full name]
+  `java -cp "[your compiled classes]:[downloaded jar]:[sqlite-orm lib folder]/*"` com.orm.sqlite.generator.DataAccessGenerator [your class full name]
 for example:
-`java -cp "dist/sqlite-orm-0.4.jar:lib/*" com.orm.sqlite.generator.DataAccessGenerator com.orm.sqlite.example.Example`
+  `java -cp "dist/sqlite-orm-0.4.jar:lib/*" com.orm.sqlite.generator.DataAccessGenerator com.orm.sqlite.example.Example`
 You can also use your favorite IDE in order to run the generator.
 
 The output will be in folder named "gen" under your project, copy it to the package of all the DAO's

@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class ${beanName}DataAccess extends BaseDataAccess<${beanName}> {
 
-	public ExampleDataAccess(SQLiteOpenHelper dbHelper) {
+	public ${beanName}DataAccess(SQLiteOpenHelper dbHelper) {
 		super(dbHelper);
 	}
 	
@@ -45,8 +45,8 @@ public class ${beanName}DataAccess extends BaseDataAccess<${beanName}> {
 	}
 
 	@Override
-	protected Example cursorToT(Cursor cursor) {
-		return new Example(getLong(cursor, COLUMN_ID), 
+	protected ${beanName} cursorToT(Cursor cursor) {
+		return new ${beanName}(getLong(cursor, COLUMN_ID), 
 #foreach($column in ${allColumnsDb})
 #set( $index = $foreach.count - 1 )
 				get${allTypesExplicit.get($index)}(cursor, COLUMN_${column.toUpperCase()}) #if( $foreach.hasNext ), #end

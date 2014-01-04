@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>sqlite-orm</groupId>
 	<artifactId>sqlite-orm</artifactId>
-	<version>0.4.2</version>
+	<version>0.4.3</version>
 	<name>Sqlite ORM (android)</name>
 	<description>Basic super lightweight "ORM" for android's sqlite.</description>
 	<licenses>
@@ -16,6 +16,12 @@
 	<url>https://github.com/noamshemesh/sqlite-orm</url>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
+		<resources>
+			<resource>
+				<directory>res</directory>
+				<targetPath>res</targetPath>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>

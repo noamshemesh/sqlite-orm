@@ -16,6 +16,12 @@
 	<url>https://github.com/noamshemesh/sqlite-orm</url>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
+		<resources>
+			<resource>
+				<directory>res</directory>
+				<targetPath>res</targetPath>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
